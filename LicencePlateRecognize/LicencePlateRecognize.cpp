@@ -10,10 +10,6 @@
 int countursCount = 0;
 int count_contr;
 
-bool digitPositionComparatorAsc(std::pair<int, char> &a, std::pair<int, char> &b) {
-	return a.first < b.first;
-}
-
 // считаем количество контуров
 int countConturs(IplImage* plateImage) {
 	countursCount = 0;
@@ -90,11 +86,11 @@ void plateNumber(IplImage* plateImage) {
 	// Оптимизируем контуры - уменьшаем количество точек
 	countursOptimized = cvApproxPoly(counturs, sizeof(CvContour), countursStorage, CV_POLY_APPROX_DP, 1, 1);
 
+	std::list<std::pair<int, char>> digitsList;
+
 	for (; countursOptimized != 0; countursOptimized = countursOptimized->h_next) {
 		CvRect rect = cvBoundingRect(countursOptimized, NULL);
 		double ratio = (rect.width / rect.height);
-
-		std::list<std::pair<int, char>> digitsList;
 
 		if ((rect.height > rect.width)) {
 			if ((plateImage->height) < (3 * rect.height)) {
@@ -115,11 +111,11 @@ void plateNumber(IplImage* plateImage) {
 				//cvReleaseImage( &sub_img );
 			}
 		}
-
-		digitsList.sort(digitPositionComparatorAsc);
-		for (std::list<std::pair<int, char>>::iterator it = digitsList.begin(); it != digitsList.end(); ++it)
-			printf("%c",it->second);
 	}
+
+	digitsList.sort([](std::pair<int, char> &a, std::pair<int, char> &b) { return a.first < b.first; });
+	for (std::list<std::pair<int, char>>::iterator it = digitsList.begin(); it != digitsList.end(); ++it)
+		printf("%c", it->second);
 
 	// Подчищаем сделанные изменения
 	cvResetImageROI(plateImage);
