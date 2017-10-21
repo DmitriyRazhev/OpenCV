@@ -6,14 +6,14 @@
 #include <allheaders.h>
 #include <Windows.h>
 
-int count_cont = 0;
+int countursCount = 0;
 int count_contr;
 
 // считаем количество контуров
-int count_contur(IplImage* sub_img) {
-	count_cont = 0;
-	IplImage* plate = cvCreateImage(cvGetSize(sub_img), IPL_DEPTH_8U, 1);
-	cvConvertImage(sub_img, plate, CV_BGR2BGRA);
+int countConturs(IplImage* plateImage) {
+	countursCount = 0;
+	IplImage* plate = cvCreateImage(cvGetSize(plateImage), IPL_DEPTH_8U, 1);
+	cvConvertImage(plateImage, plate, CV_BGR2BGRA);
 	cvThreshold(plate, plate, 50, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
 	cvErode(plate, plate, NULL, 1);
 	cvDilate(plate, plate, NULL, 1);
@@ -38,7 +38,7 @@ int count_contur(IplImage* sub_img) {
 
 		if ((rect1.height > rect1.width)) {
 			if ((plate->height) < (3 * rect1.height)) {
-				count_cont = count_cont + 1;
+				countursCount = countursCount + 1;
 			}
 		}
 	}
@@ -46,25 +46,23 @@ int count_contur(IplImage* sub_img) {
 	// освобождаем ресурсы
 	cvReleaseMemStorage(&storage1);
 	//cvReleaseImage(&sub_img);
-	return  count_cont;
+	return  countursCount;
 }
 
 /// Выводим буквы и цифры
-void plate_number(IplImage* sub_img1) {
-	cvSaveImage("sub_img.jpg", sub_img1);
-	assert(sub_img1 != 0);
+void plateNumber(IplImage* plateImage) {
+	cvSaveImage("sub_img.jpg", plateImage);
+	assert(plateImage != 0);
 
-	IplImage* number = cvCreateImage(cvGetSize(sub_img1), IPL_DEPTH_8U, 1);
-	IplImage* number_1 = cvCreateImage(cvGetSize(sub_img1), IPL_DEPTH_8U, 1);
+	IplImage* number = cvCreateImage(cvGetSize(plateImage), IPL_DEPTH_8U, 1);
 	// конвертируем в градации серого
-	cvConvertImage(sub_img1, number, CV_BGR2BGRA);
+	cvConvertImage(plateImage, number, CV_BGR2BGRA);
 	cvThreshold(number, number, 50, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
-	number_1 = cvCloneImage(number);
 	cvErode(number, number, NULL, 1);
 	cvDilate(number, number, NULL, 1);
 	cvCanny(number, number, 100, 50, 3); // находим границы
 
-	tesseract::TessBaseAPI *myOCR =	new tesseract::TessBaseAPI();
+	tesseract::TessBaseAPI *myOCR = new tesseract::TessBaseAPI();
 	myOCR->SetPageSegMode(tesseract::PSM_SINGLE_CHAR);
 	myOCR->SetVariable("tessedit_char_whitelist", "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz");
 	if (myOCR->Init(NULL, "eng")) {
@@ -75,51 +73,51 @@ void plate_number(IplImage* sub_img1) {
 	}
 
 	// хранилище памяти для контуров
-	CvMemStorage* storage2 = cvCreateMemStorage(0);
-	CvSeq* contour2 = 0;
-	CvSeq* contourLow2 = 0;
+	CvMemStorage* countursStorage = cvCreateMemStorage(0);
+	CvSeq* counturs = 0;
+	CvSeq* countursOptimized = 0;
 
-	cvFindContours(number, storage2, &contour2, sizeof(CvContour), CV_RETR_CCOMP, CV_CHAIN_APPROX_TC89_KCOS, cvPoint(0, 0));
-	assert(contour2 != 0);
-	//Optimize contours, reduce points
-	contourLow2 = cvApproxPoly(contour2, sizeof(CvContour), storage2, CV_POLY_APPROX_DP, 1, 1);
+	cvFindContours(number, countursStorage, &counturs, sizeof(CvContour), CV_RETR_CCOMP, CV_CHAIN_APPROX_TC89_KCOS, cvPoint(0, 0));
+	assert(counturs != 0);
+	// Оптимизируем контуры - уменьшаем количество точек
+	countursOptimized = cvApproxPoly(counturs, sizeof(CvContour), countursStorage, CV_POLY_APPROX_DP, 1, 1);
 
-	for (; contourLow2 != 0; contourLow2 = contourLow2->h_next)	{
-		CvRect rect;
-		CvPoint pt1, pt2;
-		rect = cvBoundingRect(contourLow2, NULL);
-		pt1.x = rect.x;
-		pt2.x = (rect.x + rect.width);
-		pt1.y = rect.y;
-		pt2.y = (rect.y + rect.height);
+	for (; countursOptimized != 0; countursOptimized = countursOptimized->h_next) {
+		CvRect rect = cvBoundingRect(countursOptimized, NULL);
 		double ratio = (rect.width / rect.height);
 
-		if ((rect.height > rect.width))	{
-			if ((number_1->height) < (3 * rect.height))	{
-				//cvRectangle(sub_img1, pt1,pt2, cvScalar(0, 0, 255), 2, 8, 0);
-				IplImage* sub_img;
-				cvSetImageROI(number_1, rect);
-				IplImage* sub_img2 = cvCreateImage(cvGetSize(number_1), number_1->depth, number_1->nChannels);
-				cvCopy(number_1, sub_img2, NULL);
-				IplImage* number_3 = cvCreateImage(cvSize(sub_img2->width + 20, sub_img2->height + 20), sub_img2->depth, sub_img2->nChannels);
-
-				cvCopyMakeBorder(sub_img2, number_3, cvPoint(10, 10), IPL_BORDER_CONSTANT, cvScalar(250));
-				cvSaveImage("number_1.jpg", number_3);
+		if ((rect.height > rect.width)) {
+			if ((plateImage->height) < (3 * rect.height)) {
+				//cvRectangle(plateImage, pt1, pt2, cvScalar(0, 0, 255), 2, 8, 0);
+				cvSetImageROI(plateImage, rect);
+				IplImage* digit = cvCreateImage(cvGetSize(plateImage), plateImage->depth, plateImage->nChannels);
+				cvCopy(plateImage, digit, NULL);
+				IplImage* digitWithBorder = cvCreateImage(cvSize(digit->width + 20, digit->height + 20), digit->depth, digit->nChannels);
+				cvCopyMakeBorder(digit, digitWithBorder, cvPoint(10, 10), IPL_BORDER_CONSTANT, cvScalar(250));
+				cvSaveImage("number_1.jpg", digitWithBorder);
 				char outText[10000];
-				myOCR->SetImage((uchar*)number_3->imageData, number_3->width, number_3->height, number_3->nChannels, number_3->widthStep);
+				myOCR->SetImage((uchar*)digitWithBorder->imageData, digitWithBorder->width, digitWithBorder->height, digitWithBorder->nChannels, digitWithBorder->widthStep);
 				myOCR->Recognize(0);
 				lstrcpy(outText, myOCR->GetUTF8Text());
 				printf(outText);
 				myOCR->Clear();
-				//myOCR->End();
 				//cvReleaseImage( &sub_img );
 			}
 		}
 	}
+
+	// Подчищаем сделанные изменения
+	cvResetImageROI(plateImage);
+
+	// выводим изображение с разметкой на символы в знаке номера
+	cvNamedWindow("chars-positions", 1);
+	cvShowImage("chars-positions", plateImage);	
+	cvSaveImage("sub_img_markup.jpg", plateImage);
+	myOCR->End();
 }
 
 // находит и показывает рамку номера
-void findplate(IplImage* _image) {
+void findPlate(IplImage* _image) {
 	assert(_image != 0);
 	IplImage* bin = cvCreateImage(cvGetSize(_image), IPL_DEPTH_8U, 1); // создаем новое изображение
 	cvConvertImage(_image, bin, CV_BGR2GRAY); // конвертируем в градации серого
@@ -154,7 +152,7 @@ void findplate(IplImage* _image) {
 			pt1.y = rect.y;
 			pt2.y = (rect.y + rect.height);
 			double ratio = rect.width / rect.height;
-			
+
 			if ((2.0 < fabs(ratio) && fabs(ratio) < 8.0)) {
 				// cvRectangle(_image, pt1,pt2, cvScalar(0, 0, 255), 1, 8, 0);
 				// отправляем рамку на поиск номера
@@ -164,49 +162,22 @@ void findplate(IplImage* _image) {
 				cvCopy(_image, sub_img, NULL);
 
 				if ((sub_img->height) < 124) {
+					// Увеличиваем размер изображения
 					double koeff1 = 124 / sub_img->height;
 					IplImage* new_sub_img = cvCreateImage(cvSize(sub_img->width*koeff1, sub_img->height*koeff1), sub_img->depth, sub_img->nChannels);
 					cvResize(sub_img, new_sub_img);
-					cvSaveImage("new_sub_img.jpg", new_sub_img);
-					//cvResize(sub_img, sub_img);
-					count_contr = count_contur(new_sub_img);
-
-					if (count_contr < 5) {
-						continue;
-					}
-					if (count_contr >= 5) {
-						// выводим буквы
-						//cvSaveImage("sub_img.jpg", sub_img);
-						plate_number(new_sub_img);
-					}
+					cvReleaseImage(&sub_img);
+					sub_img = new_sub_img;
 				}
 
-				if ((sub_img->height) < 124) {
-					double koeff1 = 124 / sub_img->height;
-					IplImage* new_sub_img = cvCreateImage(cvSize(sub_img->width*koeff1, sub_img->height*koeff1), sub_img->depth, sub_img->nChannels);
-					cvResize(sub_img, new_sub_img);
-					//cvResize(sub_img, sub_img);
-					count_contr = count_contur(new_sub_img);
+				count_contr = countConturs(sub_img);
 
-					if (count_contr < 5)
-						continue;
-					else {
-						// выводим буквы
-						cvSaveImage("sub_img.jpg", sub_img);
-						plate_number(new_sub_img);
-					}
-				}
-
-				if ((sub_img->height) >= 124) {
-					count_contr = count_contur(sub_img);
-
-					if (count_contr < 5)
-						continue;
-					else {
-						// выводим буквы
-						cvSaveImage("sub_img.jpg", sub_img);
-						plate_number(sub_img);
-					}
+				if (count_contr < 5)
+					continue;
+				else {
+					// выводим буквы
+					cvSaveImage("sub_img.jpg", sub_img);
+					plateNumber(sub_img);
 				}
 
 				cvReleaseImage(&sub_img);  // освобождаем ресурсы
@@ -227,9 +198,9 @@ int main(int argc, char* argv[]) {
 	// получаем картинку
 	src = cvLoadImage(filename, 1); // загружаем картинку
 	assert(src != 0);
-	cvNamedWindow( "original", 1 ); // покажем изображение
-	cvShowImage( "original", src );
-	findplate(src);                // поиск рамки
+	cvNamedWindow("original", 1); // покажем изображение
+	cvShowImage("original", src);
+	findPlate(src);                // поиск рамки
 	cvNamedWindow("plate", 1);
 	cvShowImage("plate", src);
 	cvWaitKey(0); // ждём нажатия клавиши

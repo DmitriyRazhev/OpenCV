@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 // находит и показывает рамку на изображении
-void findplate(IplImage* _image) {
+void findPlate(IplImage* _image) {
 	assert(_image != 0);
 
 	IplImage* temp = cvCreateImage(cvGetSize(_image), IPL_DEPTH_8U, 1);
@@ -85,7 +85,7 @@ int main(int argc, char* argv[]) {
 
 		// здесь можно вставить
 		// процедуру обработки
-		findplate(frame);
+		findPlate(frame);
 		// показываем кадр
 		cvShowImage("original", frame);
 
