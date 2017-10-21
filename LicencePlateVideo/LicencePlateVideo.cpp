@@ -4,8 +4,7 @@
 #include <stdio.h>
 
 // находит и показывает рамку на изображении
-void findplate(IplImage* _image)
-{
+void findplate(IplImage* _image) {
 	assert(_image != 0);
 
 	IplImage* temp = cvCreateImage(cvGetSize(_image), IPL_DEPTH_8U, 1);
@@ -39,17 +38,11 @@ void findplate(IplImage* _image)
 	//оптимизируем контуры
 	contourLow = cvApproxPoly(contour, sizeof(CvContour), storage, CV_POLY_APPROX_DP, 0.5, 12);
 	// бегаем по контурам 
-	for (; contourLow != 0; contourLow = contourLow->h_next)
-
-	{
+	for (; contourLow != 0; contourLow = contourLow->h_next) {
 		//находим соотношения площади к периметру контура
 		double area = fabs(cvContourArea(contourLow));
 		double perim = cvContourPerimeter(contourLow);
-		if ((area / perim)>4)
-
-		{
-
-
+		if ((area / perim)>4) {
 			CvRect rect;
 			CvPoint pt1, pt2;
 			rect = cvBoundingRect(contourLow, NULL); // ищем среди оставшихся прямоугольники
@@ -59,25 +52,20 @@ void findplate(IplImage* _image)
 			pt2.y = (rect.y + rect.height);
 			double ratio = rect.width / rect.height;
 
-			if ((2.0 < fabs(ratio) && fabs(ratio) < 8.0))
-			{
+			if ((2.0 < fabs(ratio) && fabs(ratio) < 8.0)) {
 				//Show result.
 				cvRectangle(_image, pt1, pt2, cvScalar(0, 0, 255), 1, 8, 0);
-
 			}
-
 		}
-
 	}
 	// освобождаем ресурсы
 	cvReleaseMemStorage(&storage);
 	cvReleaseImage(&temp);
 }
 
-IplImage* frame = 0;
+int main(int argc, char* argv[]) {
+	IplImage* frame = 0;
 
-int main(int argc, char* argv[])
-{
 	// имя файла задаётся первым параметром
 	char* filename = argc == 2 ? argv[1] : "Video012.mp4";
 
@@ -92,9 +80,8 @@ int main(int argc, char* argv[])
 	while (1) {
 		// получаем следующий кадр
 		frame = cvQueryFrame(capture);
-		if (!frame) {
+		if (!frame) 
 			break;
-		}
 
 		// здесь можно вставить
 		// процедуру обработки
