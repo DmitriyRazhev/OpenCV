@@ -4,8 +4,11 @@
 #include <stdio.h>
 #include <baseapi.h>
 #include <allheaders.h>
+#include <Windows.h>
+
 int count_cont = 0;
 int count_contr;
+
 // считаем количество контуров
 int count_contur(IplImage* sub_img) {
 	count_cont = 0;
@@ -61,8 +64,7 @@ void plate_number(IplImage* sub_img1) {
 	cvDilate(number, number, NULL, 1);
 	cvCanny(number, number, 100, 50, 3); // находим границы
 
-	tesseract::TessBaseAPI *myOCR =
-		new tesseract::TessBaseAPI();
+	tesseract::TessBaseAPI *myOCR =	new tesseract::TessBaseAPI();
 	myOCR->SetPageSegMode(tesseract::PSM_SINGLE_CHAR);
 	myOCR->SetVariable("tessedit_char_whitelist", "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz");
 	if (myOCR->Init(NULL, "eng")) {
@@ -190,9 +192,8 @@ void findplate(IplImage* _image) {
 						continue;
 					else {
 						// выводим буквы
-						//cvSaveImage("sub_img.jpg", sub_img);
+						cvSaveImage("sub_img.jpg", sub_img);
 						plate_number(new_sub_img);
-						// 
 					}
 				}
 
@@ -203,7 +204,7 @@ void findplate(IplImage* _image) {
 						continue;
 					else {
 						// выводим буквы
-						//cvSaveImage("sub_img.jpg", sub_img);
+						cvSaveImage("sub_img.jpg", sub_img);
 						plate_number(sub_img);
 					}
 				}
@@ -226,8 +227,8 @@ int main(int argc, char* argv[]) {
 	// получаем картинку
 	src = cvLoadImage(filename, 1); // загружаем картинку
 	assert(src != 0);
-	//cvNamedWindow( "original", 1 ); // покажем изображение
-	//cvShowImage( "original", src );
+	cvNamedWindow( "original", 1 ); // покажем изображение
+	cvShowImage( "original", src );
 	findplate(src);                // поиск рамки
 	cvNamedWindow("plate", 1);
 	cvShowImage("plate", src);
