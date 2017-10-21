@@ -5,9 +5,14 @@
 #include <baseapi.h>
 #include <allheaders.h>
 #include <Windows.h>
+#include <list>
 
 int countursCount = 0;
 int count_contr;
+
+bool digitPositionComparatorAsc(std::pair<int, char> &a, std::pair<int, char> &b) {
+	return a.first < b.first;
+}
 
 // считаем количество контуров
 int countConturs(IplImage* plateImage) {
@@ -54,6 +59,9 @@ void plateNumber(IplImage* plateImage) {
 	cvSaveImage("sub_img.jpg", plateImage);
 	assert(plateImage != 0);
 
+	IplImage* plateMarked = cvCreateImage(cvGetSize(plateImage), IPL_DEPTH_8U, 1);
+	plateMarked = cvCloneImage(plateImage);
+	
 	IplImage* number = cvCreateImage(cvGetSize(plateImage), IPL_DEPTH_8U, 1);
 	// конвертируем в градации серого
 	cvConvertImage(plateImage, number, CV_BGR2BGRA);
@@ -86,9 +94,11 @@ void plateNumber(IplImage* plateImage) {
 		CvRect rect = cvBoundingRect(countursOptimized, NULL);
 		double ratio = (rect.width / rect.height);
 
+		std::list<std::pair<int, char>> digitsList;
+
 		if ((rect.height > rect.width)) {
 			if ((plateImage->height) < (3 * rect.height)) {
-				//cvRectangle(plateImage, pt1, pt2, cvScalar(0, 0, 255), 2, 8, 0);
+				cvRectangle(plateMarked, CvPoint(rect.x, rect.y), CvPoint(rect.x+rect.width,rect.y+rect.height), cvScalar(0, 0, 255), 2, 8, 0);
 				cvSetImageROI(plateImage, rect);
 				IplImage* digit = cvCreateImage(cvGetSize(plateImage), plateImage->depth, plateImage->nChannels);
 				cvCopy(plateImage, digit, NULL);
@@ -99,11 +109,16 @@ void plateNumber(IplImage* plateImage) {
 				myOCR->SetImage((uchar*)digitWithBorder->imageData, digitWithBorder->width, digitWithBorder->height, digitWithBorder->nChannels, digitWithBorder->widthStep);
 				myOCR->Recognize(0);
 				lstrcpy(outText, myOCR->GetUTF8Text());
-				printf(outText);
+//				printf(outText);
+				digitsList.push_back( { rect.x, outText[0] });
 				myOCR->Clear();
 				//cvReleaseImage( &sub_img );
 			}
 		}
+
+		digitsList.sort(digitPositionComparatorAsc);
+		for (std::list<std::pair<int, char>>::iterator it = digitsList.begin(); it != digitsList.end(); ++it)
+			printf("%c",it->second);
 	}
 
 	// ѕодчищаем сделанные изменени€
@@ -111,8 +126,8 @@ void plateNumber(IplImage* plateImage) {
 
 	// выводим изображение с разметкой на символы в знаке номера
 	cvNamedWindow("chars-positions", 1);
-	cvShowImage("chars-positions", plateImage);	
-	cvSaveImage("sub_img_markup.jpg", plateImage);
+	cvShowImage("chars-positions", plateMarked);
+	cvSaveImage("sub_img_markup.jpg", plateMarked);
 	myOCR->End();
 }
 
