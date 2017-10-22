@@ -93,7 +93,7 @@ void plateNumber(IplImage* plateImage) {
 				cvCopy(plateImage, digit, NULL);
 				IplImage* digitWithBorder = cvCreateImage(cvSize(digit->width + 20, digit->height + 20), digit->depth, digit->nChannels);
 				cvCopyMakeBorder(digit, digitWithBorder, cvPoint(10, 10), IPL_BORDER_CONSTANT, cvScalar(250));
-				cvSaveImage("number_1.jpg", digitWithBorder);
+				if (DEBUG_ENABLED) cvSaveImage("number_1.jpg", digitWithBorder);
 				char outText[10000];
 				myOCR->SetImage((uchar*)digitWithBorder->imageData, digitWithBorder->width, digitWithBorder->height, digitWithBorder->nChannels, digitWithBorder->widthStep);
 				myOCR->Recognize(0);
@@ -178,7 +178,7 @@ void findPlate(IplImage* _image) {
 					continue;
 				else {
 					// выводим буквы
-					cvSaveImage("sub_img.jpg", sub_img);
+					if (DEBUG_ENABLED) cvSaveImage("sub_img.jpg", sub_img);
 					plateNumber(sub_img);
 				}
 
