@@ -7,12 +7,11 @@
 #include <Windows.h>
 #include <list>
 
-int countursCount = 0;
-int count_contr;
+const bool DEBUG_ENABLED = true;
 
-// считаем количество контуров
+// —читаем количество контуров
 int countConturs(IplImage* plateImage) {
-	countursCount = 0;
+	int countursCount = 0;
 	IplImage* plate = cvCreateImage(cvGetSize(plateImage), IPL_DEPTH_8U, 1);
 	cvConvertImage(plateImage, plate, CV_BGR2BGRA);
 	cvThreshold(plate, plate, 50, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
@@ -20,22 +19,16 @@ int countConturs(IplImage* plateImage) {
 	cvDilate(plate, plate, NULL, 1);
 	cvCanny(plate, plate, 100, 50, 3); // находим границы
 									   // хранилище пам€ти дл€ контуров 
-	CvMemStorage* storage1 = cvCreateMemStorage(0);
-	CvSeq* contour1 = 0;
-	CvSeq* contourLow1 = 0;
+	CvMemStorage* countursStorage = cvCreateMemStorage(0);
+	CvSeq* contour = 0;
+	CvSeq* contourLow = 0;
 
-	cvFindContours(plate, storage1, &contour1, sizeof(CvContour), CV_RETR_CCOMP, CV_CHAIN_APPROX_TC89_KCOS, cvPoint(0, 0));
-	assert(storage1 != 0);
-	contourLow1 = cvApproxPoly(contour1, sizeof(CvContour), storage1, CV_POLY_APPROX_DP, 1, 1);
+	cvFindContours(plate, countursStorage, &contour, sizeof(CvContour), CV_RETR_CCOMP, CV_CHAIN_APPROX_TC89_KCOS, cvPoint(0, 0));
+	assert(countursStorage != 0);
+	contourLow = cvApproxPoly(contour, sizeof(CvContour), countursStorage, CV_POLY_APPROX_DP, 1, 1);
 
-	for (; contourLow1 != 0; contourLow1 = contourLow1->h_next) {
-		CvRect rect1;
-		CvPoint pt11, pt21;
-		rect1 = cvBoundingRect(contourLow1, NULL);
-		pt11.x = rect1.x;
-		pt21.x = (rect1.x + rect1.width);
-		pt11.y = rect1.y;
-		pt21.y = (rect1.y + rect1.height);
+	for (; contourLow != 0; contourLow = contourLow->h_next) {
+		CvRect rect1 = cvBoundingRect(contourLow, NULL);
 
 		if ((rect1.height > rect1.width)) {
 			if ((plate->height) < (3 * rect1.height)) {
@@ -45,14 +38,14 @@ int countConturs(IplImage* plateImage) {
 	}
 
 	// освобождаем ресурсы
-	cvReleaseMemStorage(&storage1);
-	//cvReleaseImage(&sub_img);
-	return  countursCount;
+	cvReleaseMemStorage(&countursStorage);
+	cvReleaseImage(&plate);
+	return countursCount;
 }
 
 /// ¬ыводим буквы и цифры
 void plateNumber(IplImage* plateImage) {
-	cvSaveImage("sub_img.jpg", plateImage);
+	if(DEBUG_ENABLED) cvSaveImage("sub_img.jpg", plateImage);
 	assert(plateImage != 0);
 
 	IplImage* plateMarked = cvCreateImage(cvGetSize(plateImage), IPL_DEPTH_8U, 1);
@@ -105,10 +98,8 @@ void plateNumber(IplImage* plateImage) {
 				myOCR->SetImage((uchar*)digitWithBorder->imageData, digitWithBorder->width, digitWithBorder->height, digitWithBorder->nChannels, digitWithBorder->widthStep);
 				myOCR->Recognize(0);
 				lstrcpy(outText, myOCR->GetUTF8Text());
-//				printf(outText);
 				digitsList.push_back( { rect.x, outText[0] });
 				myOCR->Clear();
-				//cvReleaseImage( &sub_img );
 			}
 		}
 	}
@@ -117,13 +108,15 @@ void plateNumber(IplImage* plateImage) {
 	for (std::list<std::pair<int, char>>::iterator it = digitsList.begin(); it != digitsList.end(); ++it)
 		printf("%c", it->second);
 
-	// ѕодчищаем сделанные изменени€
-	cvResetImageROI(plateImage);
-
 	// выводим изображение с разметкой на символы в знаке номера
 	cvNamedWindow("chars-positions", 1);
 	cvShowImage("chars-positions", plateMarked);
 	cvSaveImage("sub_img_markup.jpg", plateMarked);
+
+	// ѕодчищаем сделанные изменени€
+	cvResetImageROI(plateImage);
+	cvReleaseImage(&plateMarked);
+	cvReleaseImage(&number);
 	myOCR->End();
 }
 
@@ -143,12 +136,12 @@ void findPlate(IplImage* _image) {
 								   //cvNamedWindow( "bin", 1 );
 								   //cvShowImage("bin", bin);
 								   // хранилище пам€ти дл€ контуров
-	CvMemStorage* storage = cvCreateMemStorage(0);
+	CvMemStorage* storageContoursPlate = cvCreateMemStorage(0);
 	CvSeq* contour = 0;
 	CvSeq* contourLow = 0;
-	cvFindContours(bin, storage, &contour, sizeof(CvContour), CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, cvPoint(0, 0)); // поиск контуров
+	cvFindContours(bin, storageContoursPlate, &contour, sizeof(CvContour), CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, cvPoint(0, 0)); // поиск контуров
 	assert(contour != 0);
-	contourLow = cvApproxPoly(contour, sizeof(CvContour), storage, CV_POLY_APPROX_DP, 0.5, 12); // оптимизируем контуры
+	contourLow = cvApproxPoly(contour, sizeof(CvContour), storageContoursPlate, CV_POLY_APPROX_DP, 0.5, 12); // оптимизируем контуры
 	int i = 1;
 
 	for (; contourLow != 0; contourLow = contourLow->h_next) {
@@ -181,9 +174,7 @@ void findPlate(IplImage* _image) {
 					sub_img = new_sub_img;
 				}
 
-				count_contr = countConturs(sub_img);
-
-				if (count_contr < 5)
+				if (countConturs(sub_img) < 5)
 					continue;
 				else {
 					// выводим буквы
@@ -197,7 +188,7 @@ void findPlate(IplImage* _image) {
 	}
 
 	// освобождаем ресурсы
-	cvReleaseMemStorage(&storage);
+	cvReleaseMemStorage(&storageContoursPlate);
 	cvReleaseImage(&bin);
 }
 

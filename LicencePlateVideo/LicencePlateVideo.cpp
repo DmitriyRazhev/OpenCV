@@ -27,16 +27,16 @@ void findPlate(IplImage* _image) {
 	//cvShowImage("temp", temp);
 
 	// хранилище памяти для контуров
-	CvMemStorage* storage = cvCreateMemStorage(0);
+	CvMemStorage* storageContours = cvCreateMemStorage(0);
 	CvSeq* contour = 0;
 	CvSeq* contourLow = 0;
 
-	assert(storage != 0);
+	assert(storageContours != 0);
 
-	cvFindContours(temp, storage, &contour, sizeof(CvContour), CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, cvPoint(0, 0));
+	cvFindContours(temp, storageContours, &contour, sizeof(CvContour), CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, cvPoint(0, 0));
 
 	//оптимизируем контуры
-	contourLow = cvApproxPoly(contour, sizeof(CvContour), storage, CV_POLY_APPROX_DP, 0.5, 12);
+	contourLow = cvApproxPoly(contour, sizeof(CvContour), storageContours, CV_POLY_APPROX_DP, 0.5, 12);
 	// бегаем по контурам 
 	for (; contourLow != 0; contourLow = contourLow->h_next) {
 		//находим соотношения площади к периметру контура
@@ -59,7 +59,7 @@ void findPlate(IplImage* _image) {
 		}
 	}
 	// освобождаем ресурсы
-	cvReleaseMemStorage(&storage);
+	cvReleaseMemStorage(&storageContours);
 	cvReleaseImage(&temp);
 }
 
