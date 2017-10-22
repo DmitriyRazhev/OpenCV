@@ -101,10 +101,13 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>E:\Work\OpenCV\LocateLicensePlate\LisencePlateRrcognizeVideo\tesseract\include;C:\Program Files %28x86%29\Tesseract-OCR\include;C:\tesseract-master\tesseract-master\api;C:\Program Files %28x86%29\Tesseract-OCR\include\leptonica;C:\opencv\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>E:\Work\OpenCV\LocateLicensePlate\LisencePlateRrcognizeVideo\tesseract\lib;C:\Program Files %28x86%29\Tesseract-OCR\lib;C:\opencv\build\lib\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opencv_world330.lib;tesseract400.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -114,10 +117,13 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>E:\Work\OpenCV\LocateLicensePlate\LisencePlateRrcognizeVideo\tesseract\include;C:\Program Files %28x86%29\Tesseract-OCR\include;C:\tesseract-master\tesseract-master\api;C:\Program Files %28x86%29\Tesseract-OCR\include\leptonica;C:\opencv\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>E:\Work\OpenCV\LocateLicensePlate\LisencePlateRrcognizeVideo\tesseract\lib;C:\Program Files %28x86%29\Tesseract-OCR\lib;C:\opencv\build\lib\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opencv_world330.lib;tesseract400.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

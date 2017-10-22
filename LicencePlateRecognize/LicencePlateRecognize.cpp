@@ -45,7 +45,8 @@ int countConturs(IplImage* plateImage) {
 
 /// Выводим буквы и цифры
 void plateNumber(IplImage* plateImage) {
-	if(DEBUG_ENABLED) cvSaveImage("sub_img.jpg", plateImage);
+	//if(DEBUG_ENABLED) 
+		cvSaveImage("sub_img.jpg", plateImage);
 	assert(plateImage != 0);
 
 	IplImage* plateMarked = cvCreateImage(cvGetSize(plateImage), IPL_DEPTH_8U, 1);
@@ -93,7 +94,8 @@ void plateNumber(IplImage* plateImage) {
 				cvCopy(plateImage, digit, NULL);
 				IplImage* digitWithBorder = cvCreateImage(cvSize(digit->width + 20, digit->height + 20), digit->depth, digit->nChannels);
 				cvCopyMakeBorder(digit, digitWithBorder, cvPoint(10, 10), IPL_BORDER_CONSTANT, cvScalar(250));
-				if (DEBUG_ENABLED) cvSaveImage("number_1.jpg", digitWithBorder);
+				//if (DEBUG_ENABLED) 
+					cvSaveImage("number_1.jpg", digitWithBorder);
 				char outText[10000];
 				myOCR->SetImage((uchar*)digitWithBorder->imageData, digitWithBorder->width, digitWithBorder->height, digitWithBorder->nChannels, digitWithBorder->widthStep);
 				myOCR->Recognize(0);
@@ -167,18 +169,19 @@ void findPlate(IplImage* _image) {
 
 				if ((sub_img->height) < 124) {
 					// Увеличиваем размер изображения
-					double koeff1 = 124 / sub_img->height;
+			double koeff1 = 124 / sub_img->height;
 					IplImage* new_sub_img = cvCreateImage(cvSize(sub_img->width*koeff1, sub_img->height*koeff1), sub_img->depth, sub_img->nChannels);
-					cvResize(sub_img, new_sub_img);
-					cvReleaseImage(&sub_img);
+				cvResize(sub_img, new_sub_img);
+			cvReleaseImage(&sub_img);
 					sub_img = new_sub_img;
-				}
+			}
 
 				if (countConturs(sub_img) < 5)
 					continue;
 				else {
 					// выводим буквы
-					if (DEBUG_ENABLED) cvSaveImage("sub_img.jpg", sub_img);
+					//if (DEBUG_ENABLED) 
+						cvSaveImage("sub_img.jpg", sub_img);
 					plateNumber(sub_img);
 				}
 
@@ -196,7 +199,7 @@ int main(int argc, char* argv[]) {
 	IplImage *src = 0;
 
 	// имя картинки задаётся первым параметром
-	char* filename = argc >= 2 ? argv[1] : "1064a7383029d7718635ed2cae534e37.jpg";
+	char* filename = argc >= 2 ? argv[1] : "402e4a7603dfe946519d0e739d3dd8f2.jpg";
 	// получаем картинку
 	src = cvLoadImage(filename, 1); // загружаем картинку
 	assert(src != 0);
